@@ -4,7 +4,9 @@ from functools import partial
 
 
 class UserInterface(tk.Frame):
-	def __init__(self):
+	def __init__(self, mainInst):
+		self.mainInst = mainInst
+
 		self.root = tk.Tk()
 		super().__init__(self.root)
 		if sys.platform == "linux":
@@ -18,7 +20,6 @@ class UserInterface(tk.Frame):
 		self.root.bind("<Control-r>", self.reset_window_size)
 		self.root.rowconfigure(0, weight=1)
 		self.root.columnconfigure(0, weight=1)
-		print(self.winfo_width(), self.winfo_height())
 
 		self.build()
 
