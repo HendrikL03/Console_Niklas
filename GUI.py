@@ -2,6 +2,7 @@ import tkinter as tk
 import sys
 from functools import partial
 
+
 class UserInterface(tk.Frame):
 	def __init__(self):
 		self.root = tk.Tk()
@@ -25,7 +26,6 @@ class UserInterface(tk.Frame):
 
 		self.grid()
 
-
 	def build(self):
 		# Global configurations
 		self.palette = {
@@ -47,7 +47,8 @@ class UserInterface(tk.Frame):
 			"clock": "Lato 32",
 			"menu": "Lato 18",
 			"rgb": "Lato 14",
-			"rgb_scales": "Century 12 bold"
+			"rgb_scales": "Century 12 bold",
+			"presets_font": "Century 20 italic"
 		}
 
 		default_font = "Lato 14"
@@ -66,21 +67,22 @@ class UserInterface(tk.Frame):
 		self.FrameHome.grid(row=1, column=0, pady=1, padx=1, sticky=tk.NSEW)
 		self.displayed_frame = self.FrameHome
 
-
 		###################################################################################################
 		# TOP BAR
 		###################################################################################################
 		self.FrameTopBar.config(highlightthickness=1)
 
-		self.TopBar_btnMenu = tk.Button(self.FrameTopBar, text="menu", highlightthickness=1, relief=tk.FLAT,
-										command=self.TopBar_btnMenu_event)
+		self.TopBar_btnMenu = tk.Button(self.FrameTopBar, text="menu", highlightthickness=1, relief=tk.FLAT)
 		self.TopBar_lblClock = tk.Label(self.FrameTopBar, text="00:00", font=fonts["clock"])
-		self.TopBar_btnDpb = tk.Button(self.FrameTopBar, text="dpb", highlightthickness=1, relief=tk.FLAT,
-									   command=self.TopBar_btnDpb_event)
+		self.TopBar_btnDpb = tk.Button(self.FrameTopBar, text="dpb", highlightthickness=1, relief=tk.FLAT)
 
 		self.TopBar_btnMenu.grid(row=0, column=0, padx=1, pady=1, sticky=tk.NSEW)
 		self.TopBar_lblClock.grid(row=0, column=1, sticky=tk.NSEW)
 		self.TopBar_btnDpb.grid(row=0, column=2, padx=1, pady=1, sticky=tk.NSEW)
+
+		# Commands
+		self.TopBar_btnMenu.config(command=self.topBar_btnMenu_event)
+		self.TopBar_btnDpb.config(command=self.topBar_btnDpb_event)
 
 		###################################################################################################
 		# MENU FRAME
@@ -90,21 +92,21 @@ class UserInterface(tk.Frame):
 		self.Menu_btnHome = tk.Button(self.FrameMenu, text="Home", font=fonts["menu"],
 									  highlightthickness=1, relief=tk.FLAT)
 		self.Menu_btnRGB = tk.Button(self.FrameMenu, text="RGB", font=fonts["menu"],
-									  highlightthickness=1, relief=tk.FLAT)
+									 highlightthickness=1, relief=tk.FLAT)
 		self.Menu_btnAlarms = tk.Button(self.FrameMenu, text="Wecker", font=fonts["menu"],
-									  highlightthickness=1, relief=tk.FLAT)
+										highlightthickness=1, relief=tk.FLAT)
 		self.Menu_btnClose = tk.Button(self.FrameMenu, text="Schließen", font=fonts["menu"], justify=tk.RIGHT,
-									  highlightthickness=1, relief=tk.FLAT)
-
-		self.Menu_btnHome.config(command=partial(self.Menu_DisplayFrame_event, self.FrameHome))
-		self.Menu_btnRGB.config(command=partial(self.Menu_DisplayFrame_event, self.FrameRGB))
-		self.Menu_btnAlarms.config(command=partial(self.Menu_DisplayFrame_event, self.FrameAlarms))
-
+									   highlightthickness=1, relief=tk.FLAT)
 
 		self.Menu_btnHome.grid(row=0, sticky=tk.NSEW)
 		self.Menu_btnRGB.grid(row=1, sticky=tk.NSEW)
 		self.Menu_btnAlarms.grid(row=2, sticky=tk.NSEW)
 		self.Menu_btnClose.grid(row=3, sticky=tk.S + tk.EW)
+
+		# Commands
+		self.Menu_btnHome.config(command=partial(self.menu_DisplayFrame_event, self.FrameHome))
+		self.Menu_btnRGB.config(command=partial(self.menu_DisplayFrame_event, self.FrameRGB))
+		self.Menu_btnAlarms.config(command=partial(self.menu_DisplayFrame_event, self.FrameAlarms))
 
 		###################################################################################################
 		# HOME FRAME
@@ -133,11 +135,11 @@ class UserInterface(tk.Frame):
 
 		# RGB
 		self.Home_btnRGBChannel1 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.Home_btnRGB_event, 0))
+											 command=partial(self.home_btnRGB_event, 0))
 		self.Home_btnRGBChannel2 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.Home_btnRGB_event, 1))
+											 command=partial(self.home_btnRGB_event, 1))
 		self.Home_btnRGBChannel3 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.Home_btnRGB_event, 2))
+											 command=partial(self.home_btnRGB_event, 2))
 
 		self.Home_btnRGBChannel1.grid(row=0, column=0, padx=1, pady=1, sticky=tk.NSEW)
 		self.Home_btnRGBChannel2.grid(row=1, column=0, padx=1, pady=1, sticky=tk.NSEW)
@@ -147,10 +149,9 @@ class UserInterface(tk.Frame):
 		self.sclWCBrightnessVar, self.sclWCBalanceVar = tk.IntVar(), tk.IntVar()
 		self.Home_btnWC = tk.Button(self.fHomeWC, relief=tk.FLAT)
 		self.Home_sclWCBrightness = tk.Scale(self.fHomeWC, from_=255, to=0, width=45, borderwidth=3, sliderlength=50,
-											 variable=self.sclWCBrightnessVar, command=self.Home_sclBrightness_event)
+											 variable=self.sclWCBrightnessVar, command=self.home_sclBrightness_event)
 		self.Home_sclWCBalance = tk.Scale(self.fHomeWC, from_=-255, to=255, width=45, borderwidth=3, sliderlength=50,
-										  orient=tk.HORIZONTAL, variable=self.sclWCBalanceVar,
-										  command=self.Home_sclBalance_event)
+										  orient=tk.HORIZONTAL, variable=self.sclWCBalanceVar)
 
 		self.Home_btnWC.grid(row=0, column=0, padx=1, pady=1, sticky=tk.NSEW)
 		self.Home_sclWCBrightness.grid(row=0, rowspan=2, column=1, padx=1, pady=1, sticky=tk.NSEW)
@@ -160,6 +161,9 @@ class UserInterface(tk.Frame):
 		self.fHomeShutter.grid(row=0, column=0, padx=10, pady=10, sticky=tk.NSEW)
 		self.fHomeRGB.grid(row=0, column=1, padx=10, pady=10, sticky=tk.NSEW)
 		self.fHomeWC.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
+
+		# Commands
+		self.Home_sclWCBalance.config(command=self.home_sclBalance_event)
 
 		###################################################################################################
 		# RGB FRAME
@@ -175,7 +179,9 @@ class UserInterface(tk.Frame):
 		# Channel Selection Buttons
 		self.RGB_btnChannelBoth = tk.Button(self.FrameRGB, text="Kanal 1+2", relief=tk.FLAT,
 											font=fonts["rgb"], highlightthickness=1,
-											bg=self.palette["foreground"], fg=self.palette["background"], activebackground=self.palette["activeForeground"], activeforeground=self.palette["activeBackground"])
+											bg=self.palette["foreground"], fg=self.palette["background"],
+											activebackground=self.palette["activeForeground"],
+											activeforeground=self.palette["activeBackground"])
 		self.RGB_btnChannelOne = tk.Button(self.FrameRGB, text="Kanal 1", font=fonts["rgb"],
 										   relief=tk.FLAT, highlightthickness=1)
 		self.RGB_btnChannelTwo = tk.Button(self.FrameRGB, text="Kanal 2", font=fonts["rgb"],
@@ -189,18 +195,40 @@ class UserInterface(tk.Frame):
 								   troughcolor="red", highlightthickness=0,
 								   fg="white")
 		self.RGB_sclGreen = tk.Scale(self.FrameRGB, bg="green", font=fonts["rgb_scales"], variable=self.RGB_sclGreenVar,
-								   borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-								   troughcolor="green", highlightthickness=0,
-								   fg="black")
+									 borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
+									 troughcolor="green", highlightthickness=0,
+									 fg="black")
 		self.RGB_sclBlue = tk.Scale(self.FrameRGB, bg="blue", font=fonts["rgb_scales"], variable=self.RGB_sclBlueVar,
-								   borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-								   troughcolor="blue", highlightthickness=0,
-								   fg="white")
-		self.RGB_sclMaster = tk.Scale(self.FrameRGB, bg="black", font=fonts["rgb_scales"], variable=self.RGB_sclMasterVar,
-								   borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-								   troughcolor="black", highlightthickness=0,
-								   fg="white")
+									borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
+									troughcolor="blue", highlightthickness=0,
+									fg="white")
+		self.RGB_sclMaster = tk.Scale(self.FrameRGB, bg="black", font=fonts["rgb_scales"],
+									  variable=self.RGB_sclMasterVar, borderwidth=3, width=45, from_=255, to=0,
+									  sliderlength=50, troughcolor="black", highlightthickness=0,
+									  fg="white")
 
+		# Presets
+		self.RGB_btnPresetType = tk.Button(self.FrameRGB, text="Farbe", font=fonts["rgb"], relief=tk.FLAT,
+										   highlightthickness=1)
+		self.RGB_scbPresets = tk.Scrollbar(self.FrameRGB, width=20, highlightthickness=0)
+		self.RGB_lbxPresets = tk.Listbox(self.FrameRGB, font=fonts["presets_font"],
+										 selectborderwidth=4, activestyle=tk.NONE, highlightthickness=0,
+										 yscrollcommand=self.RGB_scbPresets.set)
+		self.RGB_scbPresets.config(command=self.RGB_lbxPresets.yview)
+
+		self.fRGBPresetBtns = tk.Frame(self.FrameRGB)
+		self.RGB_btnSelect = tk.Button(self.fRGBPresetBtns, text="Auswählen", font=fonts["rgb"],
+									   relief=tk.FLAT, highlightthickness=1)
+		self.RGB_btnAdd = tk.Button(self.fRGBPresetBtns, text="Hinzufügen", font=fonts["rgb"],
+									relief=tk.FLAT, highlightthickness=1)
+		self.RGB_btnDelete = tk.Button(self.fRGBPresetBtns, text="Löschen", font=fonts["rgb"],
+									   relief=tk.FLAT, highlightthickness=1)
+		self.RGB_btnStart = tk.Button(self.fRGBPresetBtns, text="Start", font=fonts["rgb"],
+									  relief=tk.FLAT, highlightthickness=1)
+		self.RGB_btnStop = tk.Button(self.fRGBPresetBtns, text="Stop", font=fonts["rgb"],
+									 relief=tk.FLAT, highlightthickness=1)
+
+		# Grid
 		self.RGB_btnChannelBoth.grid(row=0, column=0, sticky=tk.NSEW)
 		self.RGB_btnChannelOne.grid(row=0, column=1, sticky=tk.NSEW)
 		self.RGB_btnChannelTwo.grid(row=0, column=2, sticky=tk.NSEW)
@@ -209,50 +237,27 @@ class UserInterface(tk.Frame):
 		self.RGB_sclBlue.grid(row=1, column=2, sticky=tk.NSEW)
 		self.RGB_sclMaster.grid(row=1, column=3, sticky=tk.NSEW)
 
+		self.RGB_btnPresetType.grid(row=0, column=5, sticky=tk.NSEW)
+		self.RGB_lbxPresets.grid(row=1, column=5, sticky=tk.NSEW)
+		self.RGB_scbPresets.grid(row=1, column=5, sticky=tk.NS + tk.E); self.RGB_scbPresets.lift()
 
-	# Top Bar Events
-	def TopBar_btnDpb_event(self):
-		pass
+		self.RGB_btnSelect.grid(row=0, pady=1, sticky=tk.NSEW)
+		self.RGB_btnAdd.grid(row=1, pady=1, sticky=tk.NSEW)
+		self.RGB_btnDelete.grid(row=2, pady=1, sticky=tk.EW)
+		self.RGB_btnStart.grid(row=3, pady=1, sticky=tk.NSEW)
+		self.RGB_btnStop.grid(row=4, pady=1, sticky=tk.NSEW)
 
-	def TopBar_btnMenu_event(self):
-		if self.FrameMenu.grid_info() != {}:
-			self.FrameMenu.grid_forget()
-		else:
-			self.FrameMenu.grid(row=1, column=0, padx=1, pady=1, sticky=tk.NS + tk.W)
-			self.FrameMenu.lift()
+		self.fRGBPresetBtns.grid(row=1, column=6, padx=5, sticky=tk.NSEW)
 
-	# Menu Frame Events
-	def Menu_DisplayFrame_event(self, frame):
-		if frame.grid_info() == {}:
-			self.displayed_frame.grid_forget()
-			self.displayed_frame = frame
-			frame.grid(row=1, column=0, pady=1, padx=1, sticky=tk.NSEW)
-		self.FrameMenu.grid_forget()
+		# Commands
+		self.RGB_btnChannelBoth.config(command=partial(self.rgb_btnChannelSelection_event, (True, True)))
+		self.RGB_btnChannelOne.config(command=partial(self.rgb_btnChannelSelection_event, (True, False)))
+		self.RGB_btnChannelTwo.config(command=partial(self.rgb_btnChannelSelection_event, (False, True)))
 
-	# Home Frame Events
-	def Home_btnSetShutter_event(self):
-		pass
-
-	def Home_btnShutterUp_event(self):
-		pass
-
-	def Home_btnShutterStop_event(self):
-		pass
-
-	def Home_btnShutterDown_event(self):
-		pass
-
-	def Home_btnRGB_event(self, idx):
-		pass
-
-	def Home_btnWC_event(self):
-		pass
-
-	def Home_sclBrightness_event(self, evt):
-		pass
-
-	def Home_sclBalance_event(self, evt):
-		pass
+		self.RGB_sclRed.config(command=partial(self.rgb_scales_event, 0))
+		self.RGB_sclGreen.config(command=partial(self.rgb_scales_event, 1))
+		self.RGB_sclBlue.config(command=partial(self.rgb_scales_event, 2))
+		self.RGB_sclMaster.config(command=partial(self.rgb_scales_event, 3))
 
 	def root_config_evt(self, evt):
 		if isinstance(evt.widget, tk.Tk) and (evt.width != self.width or evt.height != self.height):
@@ -267,46 +272,41 @@ class UserInterface(tk.Frame):
 	def grid_config_UI(self):
 		self.config(width=self.width, height=self.height)
 
-	### BaseFrame
+		### BaseFrame
 		self.grid_rowconfigure(0, weight=1, minsize=int(self.height * self.rel_menu_height))
 		self.grid_rowconfigure(1, weight=2, minsize=int(self.height * self.rel_panel_height))
 		self.grid_columnconfigure(0, weight=2, minsize=self.width)
 
-	### FrameTopBar
+		### FrameTopBar
 		self.FrameTopBar.columnconfigure(0, weight=0, minsize=int(self.height * self.rel_menu_height))
 		self.FrameTopBar.columnconfigure(1, weight=1)
 		self.FrameTopBar.columnconfigure(2, weight=0, minsize=int(self.height * self.rel_menu_height))
 		self.FrameTopBar.rowconfigure(0, weight=1)
 
-	### Menu ###
-		# self.FrameMenu.grid_rowconfigure(0, weight=0)
-		# self.FrameMenu.grid_rowconfigure(1, weight=0)
-		# self.FrameMenu.grid_rowconfigure(2, weight=0)
+		### Menu ###
 		self.FrameMenu.grid_rowconfigure(3, weight=1)
-		self.FrameMenu.grid_columnconfigure(0, minsize=int(self.width*0.3))
+		self.FrameMenu.grid_columnconfigure(0, minsize=int(self.width * 0.3))
 
-	### Home ###
+		### Home ###
 		self.FrameHome.config(width=self.width, height=int(self.height * self.rel_panel_height))
 
 		self.FrameHome.grid_rowconfigure(0, weight=1)
 		self.FrameHome.grid_columnconfigure(0, weight=1)
-		# self.FrameHome.grid_columnconfigure(1, weight=0)
-		# self.FrameHome.grid_columnconfigure(2, weight=0)
-		self.fHomeWC.config(width=int(self.FrameHome.cget("width")*0.5)-self.fHomeWC.grid_info()["padx"]*2, height=self.FrameHome.cget("height"))
+		self.fHomeWC.config(width=int(self.FrameHome.cget("width") * 0.5) - self.fHomeWC.grid_info()["padx"] * 2,
+							height=self.FrameHome.cget("height"))
 
 		# Shutter
 		self.fHomeShutter.grid_rowconfigure(0, weight=1)
 		self.fHomeShutter.grid_rowconfigure(1, weight=1)
 		self.fHomeShutter.grid_rowconfigure(2, weight=1)
 		self.fHomeShutter.grid_rowconfigure(3, weight=1)
-		# self.fHomeShutter.grid_columnconfigure(0, weight=0)	# Scale does not expand when possible
-		self.fHomeShutter.grid_columnconfigure(1, weight=2)
+		self.fHomeShutter.grid_columnconfigure(1, weight=1)
 
 		# RGB
 		self.fHomeRGB.grid_rowconfigure(0, weight=1)
 		self.fHomeRGB.grid_rowconfigure(1, weight=1)
 		self.fHomeRGB.grid_rowconfigure(2, weight=1)
-		self.fHomeRGB.grid_columnconfigure(0, minsize=int(self.FrameHome.cget("height")*0.33), weight=1)
+		self.fHomeRGB.grid_columnconfigure(0, minsize=int(self.FrameHome.cget("height") * 0.33), weight=1)
 
 		# WC
 		self.fHomeWC.grid_propagate(0)
@@ -315,9 +315,83 @@ class UserInterface(tk.Frame):
 		self.fHomeWC.grid_rowconfigure(0, minsize=int(self.fHomeWC.cget("height") * 0.75), weight=0)
 		self.fHomeWC.grid_rowconfigure(1, weight=1)
 
-	### RGB ###
-		# self.FrameRGB.grid_rowconfigure(0, weight=0)
+		### RGB ###
 		self.FrameRGB.grid_rowconfigure(1, weight=1)
+		self.FrameRGB.grid_columnconfigure(4, minsize=int(0.05*self.width), weight=1)
+		self.FrameRGB.grid_columnconfigure(5, weight=1)
+		self.FrameRGB.grid_columnconfigure(6, weight=1, minsize=int(self.width*0.15))
+
+		self.fRGBPresetBtns.grid_columnconfigure(0, weight=1)
+		self.fRGBPresetBtns.grid_rowconfigure(2, weight=1)
+
+	# Top Bar Events
+	def topBar_btnDpb_event(self):
+		pass
+
+	def topBar_btnMenu_event(self):
+		if self.FrameMenu.grid_info() != {}:
+			self.FrameMenu.grid_forget()
+		else:
+			self.FrameMenu.grid(row=1, column=0, padx=1, pady=1, sticky=tk.NS + tk.W)
+			self.FrameMenu.lift()
+
+	# Menu Frame Events
+	def menu_DisplayFrame_event(self, frame):
+		if frame.grid_info() == {}:
+			self.displayed_frame.grid_forget()
+			self.displayed_frame = frame
+			frame.grid(row=1, column=0, pady=1, padx=1, sticky=tk.NSEW)
+		self.FrameMenu.grid_forget()
+
+	# Home Frame Events
+	def home_btnSetShutter_event(self):
+		pass
+
+	def home_btnShutterUp_event(self):
+		pass
+
+	def home_btnShutterStop_event(self):
+		pass
+
+	def home_btnShutterDown_event(self):
+		pass
+
+	def home_btnRGB_event(self, idx):
+		pass
+
+	def home_btnWC_event(self):
+		pass
+
+	def home_sclBrightness_event(self, value):
+		pass
+
+	def home_sclBalance_event(self, value):
+		pass
+
+	# RGB Frame Events
+	def rgb_scales_event(self, index, value):
+		pass
+
+	def rgb_btnChannelSelection_event(self, channels=None):
+		pass
+
+	def rgb_btnPresetType_event(self):
+		pass
+
+	def rgb_btnPresetSelect_event(self):
+		pass
+
+	def rgb_btnPresetAdd_event(self):
+		pass
+
+	def rgb_btnPresetDelete_event(self):
+		pass
+
+	def rgb_btnPresetStart_event(self):
+		pass
+
+	def rgb_btnPresetStop_event(self):
+		pass
 
 
 if __name__ == "__main__":
