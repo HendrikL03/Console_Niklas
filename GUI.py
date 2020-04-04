@@ -175,7 +175,6 @@ class UserInterface(tk.Frame):
 			"activeforeground": self.palette["activeBackground"]
 		}
 		# Channel Selection Buttons
-		self.RGB_channelsSelected = [True, True]
 		self.RGB_btnChannelBoth = tk.Button(self.FrameRGB, text="Kanal 1+2", relief=tk.FLAT,
 											font=fonts["rgb"], highlightthickness=1,
 											cnf=self.selected_RGB_channel_palette)
@@ -220,9 +219,9 @@ class UserInterface(tk.Frame):
 									relief=tk.FLAT, highlightthickness=1)
 		self.RGB_btnDelete = tk.Button(self.fRGBPresetBtns, text="Löschen", font=fonts["rgb"],
 									   relief=tk.FLAT, highlightthickness=1)
-		self.RGB_btnStart = tk.Button(self.fRGBPresetBtns, text="Start", font=fonts["rgb"],
+		self.RGB_btnStart = tk.Button(self.fRGBPresetBtns, text="Start", font=fonts["rgb"], state=tk.DISABLED,
 									  relief=tk.FLAT, highlightthickness=1)
-		self.RGB_btnStop = tk.Button(self.fRGBPresetBtns, text="Stop", font=fonts["rgb"],
+		self.RGB_btnStop = tk.Button(self.fRGBPresetBtns, text="Stop", font=fonts["rgb"], state=tk.DISABLED,
 									 relief=tk.FLAT, highlightthickness=1)
 
 		# Grid
@@ -322,6 +321,10 @@ class UserInterface(tk.Frame):
 		self.fRGBPresetBtns.grid_columnconfigure(0, weight=1)
 		self.fRGBPresetBtns.grid_rowconfigure(2, weight=1)
 
+#################################################################
+# Events and other Functions
+#################################################################
+
 	# Top Bar Events
 	def topBar_btnDpb_event(self):
 		pass
@@ -373,18 +376,16 @@ class UserInterface(tk.Frame):
 	# RGB Frame Events
 	def rgb_scales_event(self, index, value):
 		# RGB Module
-		self.mainInst.RGB.scl_event(index, value, self.RGB_channelsSelected)
+		self.mainInst.RGB.scl_event(index, value)
 
 		# GUI Update
-		rgb_values = self.mainInst.RGB.get_rgbm_from_channel(self.RGB_channelsSelected.index(True))[:3]
+		rgb_values = self.mainInst.RGB.get_rgbm_from_channel()[:3]
 		c = self.hex_from_rgb(tuple(rgb_values))
 		self.RGB_sclMaster.config(bg=c, troughcolor=c)
 
 	def rgb_btnChannelSelection_event(self, channels: list):
 		# RGB Module and values
-		if channels == [True, True]:
-			self.mainInst.RGB.btn_channel_selection(self.RGB_channelsSelected.index(True))
-		self.RGB_channelsSelected = channels
+		self.mainInst.RGB.btn_channel_selection(channels, self.mainInst.RGB.gui_selected_channels.index(True))
 
 		# GUI Update
 		# Set Button background
@@ -403,7 +404,7 @@ class UserInterface(tk.Frame):
 				btn.config(cnf=not_selected_dict)
 
 		# Set Scales according to selected RGB channel
-		rgbm_values = self.mainInst.RGB.get_rgbm_from_channel(self.RGB_channelsSelected.index(True))
+		rgbm_values = self.mainInst.RGB.get_rgbm_from_channel()
 		for sclvar, value in zip(self.RGB_scalesVars, rgbm_values):
 			sclvar.set(value)
 
@@ -428,6 +429,11 @@ class UserInterface(tk.Frame):
 
 	def rgb_btnPresetStop_event(self):
 		pass
+
+	def rgb_update_scales_from_values(self):
+		values = self.mainInst.RGB.get_rgbm_from_channel()
+		for i in range(4):
+			self.RGB_scalesVars[i] = values[i]
 
 	### Utils ###
 	@staticmethod
