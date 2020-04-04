@@ -27,6 +27,8 @@ class UserInterface(tk.Frame):
 
 		self.grid()
 
+	# TODO Load Pictures
+
 	def build(self):
 		# Global configurations
 		self.palette = {
@@ -135,16 +137,12 @@ class UserInterface(tk.Frame):
 		self.Home_btnShutterUp.grid(row=2, column=1, sticky=tk.NSEW)
 
 		# RGB
-		self.Home_btnRGBChannel1 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.home_btnRGB_event, 0))
-		self.Home_btnRGBChannel2 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.home_btnRGB_event, 1))
-		self.Home_btnRGBChannel3 = tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.home_btnRGB_event, 2))
+		self.Home_btnRGBRelayChannels = []
+		for i in range(3):
+			self.Home_btnRGBRelayChannels.append( tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
+											 command=partial(self.home_btnRGB_event, i)))
 
-		self.Home_btnRGBChannel1.grid(row=0, column=0, padx=1, pady=1, sticky=tk.NSEW)
-		self.Home_btnRGBChannel2.grid(row=1, column=0, padx=1, pady=1, sticky=tk.NSEW)
-		self.Home_btnRGBChannel3.grid(row=2, column=0, padx=1, pady=1, sticky=tk.NSEW)
+			self.Home_btnRGBRelayChannels[-1].grid(row=i, column=0, padx=1, pady=1, sticky=tk.NSEW)
 
 		# WC
 		self.sclWCBrightnessVar, self.sclWCBalanceVar = tk.IntVar(), tk.IntVar()
@@ -176,35 +174,33 @@ class UserInterface(tk.Frame):
 			"fg": self.palette["background"],
 			"activeforeground": self.palette["activeBackground"]
 		}
-
 		# Channel Selection Buttons
+		self.RGB_channelsSelected = [True, True]
 		self.RGB_btnChannelBoth = tk.Button(self.FrameRGB, text="Kanal 1+2", relief=tk.FLAT,
 											font=fonts["rgb"], highlightthickness=1,
-											bg=self.palette["foreground"], fg=self.palette["background"],
-											activebackground=self.palette["activeForeground"],
-											activeforeground=self.palette["activeBackground"])
+											cnf=self.selected_RGB_channel_palette)
 		self.RGB_btnChannelOne = tk.Button(self.FrameRGB, text="Kanal 1", font=fonts["rgb"],
 										   relief=tk.FLAT, highlightthickness=1)
 		self.RGB_btnChannelTwo = tk.Button(self.FrameRGB, text="Kanal 2", font=fonts["rgb"],
 										   relief=tk.FLAT, highlightthickness=1)
 
 		# Scales
-		self.RGB_sclRedVar, self.RGB_sclGreenVar, self.RGB_sclBlueVar, self.RGB_sclMasterVar = tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar()
+		self.RGB_scalesVars = [tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar()]
 
-		self.RGB_sclRed = tk.Scale(self.FrameRGB, bg="red", font=fonts["rgb_scales"], variable=self.RGB_sclRedVar,
+		self.RGB_sclRed = tk.Scale(self.FrameRGB, bg="red", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[0],
 								   borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
 								   troughcolor="red", highlightthickness=0,
 								   fg="white")
-		self.RGB_sclGreen = tk.Scale(self.FrameRGB, bg="green", font=fonts["rgb_scales"], variable=self.RGB_sclGreenVar,
+		self.RGB_sclGreen = tk.Scale(self.FrameRGB, bg="green", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[1],
 									 borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
 									 troughcolor="green", highlightthickness=0,
 									 fg="black")
-		self.RGB_sclBlue = tk.Scale(self.FrameRGB, bg="blue", font=fonts["rgb_scales"], variable=self.RGB_sclBlueVar,
+		self.RGB_sclBlue = tk.Scale(self.FrameRGB, bg="blue", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[2],
 									borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
 									troughcolor="blue", highlightthickness=0,
 									fg="white")
 		self.RGB_sclMaster = tk.Scale(self.FrameRGB, bg="black", font=fonts["rgb_scales"],
-									  variable=self.RGB_sclMasterVar, borderwidth=3, width=45, from_=255, to=0,
+									  variable=self.RGB_scalesVars[3], borderwidth=3, width=45, from_=255, to=0,
 									  sliderlength=50, troughcolor="black", highlightthickness=0,
 									  fg="white")
 
@@ -251,14 +247,15 @@ class UserInterface(tk.Frame):
 		self.fRGBPresetBtns.grid(row=1, column=6, padx=5, sticky=tk.NSEW)
 
 		# Commands
-		self.RGB_btnChannelBoth.config(command=partial(self.rgb_btnChannelSelection_event, (True, True)))
-		self.RGB_btnChannelOne.config(command=partial(self.rgb_btnChannelSelection_event, (True, False)))
-		self.RGB_btnChannelTwo.config(command=partial(self.rgb_btnChannelSelection_event, (False, True)))
+		self.RGB_btnChannelBoth.config(command=partial(self.rgb_btnChannelSelection_event, [True, True]))
+		self.RGB_btnChannelOne.config(command=partial(self.rgb_btnChannelSelection_event, [True, False]))
+		self.RGB_btnChannelTwo.config(command=partial(self.rgb_btnChannelSelection_event, [False, True]))
 
 		self.RGB_sclRed.config(command=partial(self.rgb_scales_event, 0))
 		self.RGB_sclGreen.config(command=partial(self.rgb_scales_event, 1))
 		self.RGB_sclBlue.config(command=partial(self.rgb_scales_event, 2))
 		self.RGB_sclMaster.config(command=partial(self.rgb_scales_event, 3))
+
 
 	def root_config_evt(self, evt):
 		if isinstance(evt.widget, tk.Tk) and (evt.width != self.width or evt.height != self.height):
@@ -358,7 +355,11 @@ class UserInterface(tk.Frame):
 		pass
 
 	def home_btnRGB_event(self, idx):
-		pass
+		# RGB Module
+		self.mainInst.RGB.btn_relays_event(idx)
+
+		# GUI Updates
+		# TODO Load rgb picture
 
 	def home_btnWC_event(self):
 		pass
@@ -371,10 +372,44 @@ class UserInterface(tk.Frame):
 
 	# RGB Frame Events
 	def rgb_scales_event(self, index, value):
-		pass
+		# RGB Module
+		self.mainInst.RGB.scl_event(index, value, self.RGB_channelsSelected)
 
-	def rgb_btnChannelSelection_event(self, channels=None):
-		pass
+		# GUI Update
+		rgb_values = self.mainInst.RGB.get_rgbm_from_channel(self.RGB_channelsSelected.index(True))[:3]
+		c = self.hex_from_rgb(tuple(rgb_values))
+		self.RGB_sclMaster.config(bg=c, troughcolor=c)
+
+	def rgb_btnChannelSelection_event(self, channels: list):
+		# RGB Module and values
+		if channels == [True, True]:
+			self.mainInst.RGB.btn_channel_selection(self.RGB_channelsSelected.index(True))
+		self.RGB_channelsSelected = channels
+
+		# GUI Update
+		# Set Button background
+		idx = [[True, True], [True, False], [False, True]].index(channels)
+		not_selected_dict = {
+			"fg": self.palette["foreground"],
+			"activeforeground": self.palette["activeForeground"],
+			"bg": self.palette["background"],
+			"activebackground": self.palette["activeBackground"]
+		}
+
+		for i, btn in enumerate((self.RGB_btnChannelBoth, self.RGB_btnChannelOne, self.RGB_btnChannelTwo)):
+			if i == idx:
+				btn.config(cnf=self.selected_RGB_channel_palette)
+			else:
+				btn.config(cnf=not_selected_dict)
+
+		# Set Scales according to selected RGB channel
+		rgbm_values = self.mainInst.RGB.get_rgbm_from_channel(self.RGB_channelsSelected.index(True))
+		for sclvar, value in zip(self.RGB_scalesVars, rgbm_values):
+			sclvar.set(value)
+
+		# Master background
+		rgb_bg = self.hex_from_rgb(tuple(rgbm_values[:3]))
+		self.RGB_sclMaster.config(bg=rgb_bg, troughcolor=rgb_bg)
 
 	def rgb_btnPresetType_event(self):
 		pass
@@ -394,7 +429,14 @@ class UserInterface(tk.Frame):
 	def rgb_btnPresetStop_event(self):
 		pass
 
+	### Utils ###
+	@staticmethod
+	def hex_from_rgb(rgb):
+		hexcode = '#%02x%02x%02x' % rgb
+		return hexcode
+
 
 if __name__ == "__main__":
 	UI = UserInterface()
+	print(UI.hex_from_rgb((255, 128, 10)))
 	UI.root.mainloop()
