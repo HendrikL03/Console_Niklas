@@ -21,9 +21,12 @@ class UserInterface(tk.Frame):
 		self.root.rowconfigure(0, weight=1)
 		self.root.columnconfigure(0, weight=1)
 
+		# Build GUI
 		self.build()
-
 		self.grid_config_UI()
+
+		# Setup other things
+		self.rgb_fill_listbox()
 
 		self.grid()
 
@@ -186,17 +189,17 @@ class UserInterface(tk.Frame):
 		# Scales
 		self.RGB_scalesVars = [tk.IntVar(), tk.IntVar(), tk.IntVar(), tk.IntVar()]
 
-		self.RGB_sclRed = tk.Scale(self.FrameRGB, bg="red", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[0],
+		self.RGB_sclRed = tk.Scale(self.FrameRGB, font=fonts["rgb_scales"], variable=self.RGB_scalesVars[0],
 								   borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-								   troughcolor="red", highlightthickness=0,
+								   highlightthickness=0, bg="red", activebackground="red", troughcolor="red",
 								   fg="white")
-		self.RGB_sclGreen = tk.Scale(self.FrameRGB, bg="green", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[1],
+		self.RGB_sclGreen = tk.Scale(self.FrameRGB,  font=fonts["rgb_scales"], variable=self.RGB_scalesVars[1],
 									 borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-									 troughcolor="green", highlightthickness=0,
+									 highlightthickness=0, bg="green", activebackground="green", troughcolor="green",
 									 fg="black")
-		self.RGB_sclBlue = tk.Scale(self.FrameRGB, bg="blue", font=fonts["rgb_scales"], variable=self.RGB_scalesVars[2],
+		self.RGB_sclBlue = tk.Scale(self.FrameRGB, font=fonts["rgb_scales"], variable=self.RGB_scalesVars[2],
 									borderwidth=3, width=45, from_=255, to=0, sliderlength=50,
-									troughcolor="blue", highlightthickness=0,
+									highlightthickness=0, bg="blue", activebackground="blue", troughcolor="blue",
 									fg="white")
 		self.RGB_sclMaster = tk.Scale(self.FrameRGB, bg="black", font=fonts["rgb_scales"],
 									  variable=self.RGB_scalesVars[3], borderwidth=3, width=45, from_=255, to=0,
@@ -254,6 +257,11 @@ class UserInterface(tk.Frame):
 		self.RGB_sclGreen.config(command=partial(self.rgb_scales_event, 1))
 		self.RGB_sclBlue.config(command=partial(self.rgb_scales_event, 2))
 		self.RGB_sclMaster.config(command=partial(self.rgb_scales_event, 3))
+
+		self.RGB_btnPresetType.config(command=self.rgb_btnPresetType_event)
+		self.RGB_btnSelect.config(command=self.rgb_btnPresetSelect_event)
+		self.RGB_btnStart.config(command=self.rgb_btnPresetStart_event)
+		self.RGB_btnStop.config(command=self.rgb_btnPresetStop_event)
 
 
 	def root_config_evt(self, evt):
@@ -325,7 +333,22 @@ class UserInterface(tk.Frame):
 # Events and other Functions
 #################################################################
 
-	# Top Bar Events
+	#### Fill Listbox
+	def rgb_fill_listbox(self):
+		presets = self.mainInst.RGB.GUI_config[self.mainInst.RGB.preset_type]
+
+		self.RGB_lbxPresets.delete(0, tk.END)
+		for preset in presets:
+			self.RGB_lbxPresets.insert(tk.END, preset["name"])
+
+			rgb = preset["data"][:3] if self.mainInst.RGB.preset_type == "Presets" else preset["data"][0][:3]
+			bg_color = self.hex_from_rgb(rgb)
+			self.RGB_lbxPresets.itemconfig(tk.END, background=bg_color, selectbackground=bg_color)
+
+			fg_color = "#000000" if max(rgb) > 128 else "#ffffff"
+			self.RGB_lbxPresets.itemconfig(tk.END, foreground=fg_color, selectforeground=fg_color)
+
+	#### Top Bar Events
 	def topBar_btnDpb_event(self):
 		pass
 
@@ -336,7 +359,7 @@ class UserInterface(tk.Frame):
 			self.FrameMenu.grid(row=1, column=0, padx=1, pady=1, sticky=tk.NS + tk.W)
 			self.FrameMenu.lift()
 
-	# Menu Frame Events
+	### Menu Frame Events
 	def menu_DisplayFrame_event(self, frame):
 		if frame.grid_info() == {}:
 			self.displayed_frame.grid_forget()
@@ -344,7 +367,7 @@ class UserInterface(tk.Frame):
 			frame.grid(row=1, column=0, pady=1, padx=1, sticky=tk.NSEW)
 		self.FrameMenu.grid_forget()
 
-	# Home Frame Events
+	### Home Frame Events
 	def home_btnSetShutter_event(self):
 		pass
 
@@ -373,15 +396,13 @@ class UserInterface(tk.Frame):
 	def home_sclBalance_event(self, value):
 		pass
 
-	# RGB Frame Events
+	### RGB Frame Events
 	def rgb_scales_event(self, index, value):
 		# RGB Module
 		self.mainInst.RGB.scl_event(index, value)
 
 		# GUI Update
-		rgb_values = self.mainInst.RGB.get_rgbm_from_channel()[:3]
-		c = self.hex_from_rgb(tuple(rgb_values))
-		self.RGB_sclMaster.config(bg=c, troughcolor=c)
+		self.rgb_set_master_bg()
 
 	def rgb_btnChannelSelection_event(self, channels: list):
 		# RGB Module and values
@@ -409,14 +430,42 @@ class UserInterface(tk.Frame):
 			sclvar.set(value)
 
 		# Master background
-		rgb_bg = self.hex_from_rgb(tuple(rgbm_values[:3]))
-		self.RGB_sclMaster.config(bg=rgb_bg, troughcolor=rgb_bg)
+		self.rgb_set_master_bg()
 
 	def rgb_btnPresetType_event(self):
-		pass
+		# RGB Module
+		self.mainInst.RGB.switch_preset_type()
+
+		# GUI Update
+		if self.mainInst.RGB.preset_type == "Animations":
+			self.RGB_btnPresetType.config(text="Animationen")
+			self.RGB_btnStart.config(state=tk.NORMAL)
+			self.RGB_btnStop.config(state=tk.NORMAL)
+		else:
+			self.RGB_btnPresetType.config(text="Farbe")
+			if not self.mainInst.RGB.animation_active:
+				self.RGB_btnStart.config(state=tk.DISABLED)
+				self.RGB_btnStop.config(state=tk.DISABLED)
+
+		self.rgb_fill_listbox()
 
 	def rgb_btnPresetSelect_event(self):
-		pass
+		# RGB Module
+		disable_start_stop = False
+		if self.mainInst.RGB.animation_active:
+			self.mainInst.RGB.animation_stop(reset=True)
+			disable_start_stop = True
+
+		idx = self.RGB_lbxPresets.curselection()[-1]
+		self.mainInst.RGB.select_preset(idx)
+
+		# GUI Update
+		if disable_start_stop:
+			self.RGB_btnStart.config(state=tk.DISABLED)
+			self.RGB_btnStop.config(state=tk.DISABLED)
+		self.rgb_update_scales_from_values()
+
+		self.rgb_set_master_bg()
 
 	def rgb_btnPresetAdd_event(self):
 		pass
@@ -425,20 +474,34 @@ class UserInterface(tk.Frame):
 		pass
 
 	def rgb_btnPresetStart_event(self):
+		# RGB Module
+		self.mainInst.RGB.animation_start()
 		pass
 
 	def rgb_btnPresetStop_event(self):
+		# RGB Module
+		self.mainInst.RGB.animation_stop()
 		pass
 
 	def rgb_update_scales_from_values(self):
 		values = self.mainInst.RGB.get_rgbm_from_channel()
 		for i in range(4):
-			self.RGB_scalesVars[i] = values[i]
+			self.RGB_scalesVars[i].set(values[i])
 
 	### Utils ###
+	def rgb_handle_animation(self):
+		self.rgb_update_scales_from_values()
+		self.rgb_set_master_bg()
+
+	def rgb_set_master_bg(self):
+		rgb = self.mainInst.RGB.get_rgbm_from_channel()[:3]
+		bg_color = self.hex_from_rgb(rgb)
+		fg_color = "#000000" if max(rgb) >= 128 else "#ffffff"
+		self.RGB_sclMaster.config(bg=bg_color, activebackground=bg_color, fg=fg_color, troughcolor=bg_color)
+
 	@staticmethod
 	def hex_from_rgb(rgb):
-		hexcode = '#%02x%02x%02x' % rgb
+		hexcode = '#%02x%02x%02x' % tuple(rgb)
 		return hexcode
 
 

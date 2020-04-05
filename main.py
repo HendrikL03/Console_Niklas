@@ -13,12 +13,15 @@ class Main:
 
 		self.com_frequency = 60		# Hz
 
+		self.GUI.root.after(10, self.com_loop)
+
 		self.GUI.root.mainloop()
 
 	def com_loop(self):
 		self.GUI.root.after(int(1000/self.com_frequency), self.com_loop)
 		if self.RGB.animation_active:
-			self.RGB.animation_rgb_t()
+			self.RGB.animation_set_rgb()
+			self.GUI.rgb_handle_animation()
 
 	def load_config(self):
 		with open(self.config_path, "r") as f:

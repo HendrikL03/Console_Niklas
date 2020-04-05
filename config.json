@@ -2,14 +2,14 @@
 	"RGB": {
 		"Animations": [
 			{
-				"name": "RGB",
+				"name": "RGB loop",
 				"data": [
 					[255, 0, 0, 0],
 					[0, 255, 0, 10],
 					[0, 0, 255, 20],
 					[255, 0, 0, 30]
 				],
-				"loop": false
+				"loop": true
 			}
 		],
 		"Presets": [
