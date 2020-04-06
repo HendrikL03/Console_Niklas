@@ -1,0 +1,13 @@
+Ideas:
+    - Transistion in RGB when setting a preset / Turning relays on or off
+
+TODO:
+    - RGB Module
+        - adding and deleting presets
+    - WC Module
+    - Arduino
+        - cannot acces values of other modules, is created before them
+        - How do other modules access mask?
+    - Alarm:
+        - GUI
+        - Module

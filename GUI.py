@@ -260,6 +260,8 @@ class UserInterface(tk.Frame):
 
 		self.RGB_btnPresetType.config(command=self.rgb_btnPresetType_event)
 		self.RGB_btnSelect.config(command=self.rgb_btnPresetSelect_event)
+		self.RGB_btnAdd.config(command=self.rgb_btnPresetAdd_event)
+		self.RGB_btnDelete.config(command=self.rgb_btnPresetDelete_event)
 		self.RGB_btnStart.config(command=self.rgb_btnPresetStart_event)
 		self.RGB_btnStop.config(command=self.rgb_btnPresetStop_event)
 
@@ -335,7 +337,7 @@ class UserInterface(tk.Frame):
 
 	#### Fill Listbox
 	def rgb_fill_listbox(self):
-		presets = self.mainInst.RGB.GUI_config[self.mainInst.RGB.preset_type]
+		presets = self.mainInst.RGB.RGB_config[self.mainInst.RGB.preset_type]
 
 		self.RGB_lbxPresets.delete(0, tk.END)
 		for preset in presets:
@@ -388,18 +390,27 @@ class UserInterface(tk.Frame):
 		# TODO Load rgb picture
 
 	def home_btnWC_event(self):
+		# WC Module
+		self.mainInst.WC.relay_btn()
+
+		# GUI Update
+		# TODO load wc picture
 		pass
 
 	def home_sclBrightness_event(self, value):
-		pass
+		# WC Module
+		self.mainInst.WC.brightness_to_value(brightness=int(value))
 
 	def home_sclBalance_event(self, value):
-		pass
+		# WC Module
+		self.mainInst.WC.balance_to_values(balance=int(value))
+		# GUI Update
+		# TODO adjust troughcolor
 
 	### RGB Frame Events
 	def rgb_scales_event(self, index, value):
 		# RGB Module
-		self.mainInst.RGB.scl_event(index, value)
+		self.mainInst.RGB.scl_event(index, int(value))
 
 		# GUI Update
 		self.rgb_set_master_bg()
@@ -441,8 +452,12 @@ class UserInterface(tk.Frame):
 			self.RGB_btnPresetType.config(text="Animationen")
 			self.RGB_btnStart.config(state=tk.NORMAL)
 			self.RGB_btnStop.config(state=tk.NORMAL)
+			self.RGB_btnAdd.config(state=tk.DISABLED)
+			self.RGB_btnDelete.config(state=tk.DISABLED)
 		else:
 			self.RGB_btnPresetType.config(text="Farbe")
+			self.RGB_btnAdd.config(state=tk.NORMAL)
+			self.RGB_btnDelete.config(state=tk.NORMAL)
 			if not self.mainInst.RGB.animation_active:
 				self.RGB_btnStart.config(state=tk.DISABLED)
 				self.RGB_btnStop.config(state=tk.DISABLED)
@@ -452,7 +467,7 @@ class UserInterface(tk.Frame):
 	def rgb_btnPresetSelect_event(self):
 		# RGB Module
 		disable_start_stop = False
-		if self.mainInst.RGB.animation_active:
+		if self.mainInst.RGB.preset_type == "Presets":
 			self.mainInst.RGB.animation_stop(reset=True)
 			disable_start_stop = True
 
@@ -468,9 +483,21 @@ class UserInterface(tk.Frame):
 		self.rgb_set_master_bg()
 
 	def rgb_btnPresetAdd_event(self):
-		pass
+		print("add")
+		# RGB Module
+		self.mainInst.RGB.add_preset()
+
+		# GUI Update
+		self.rgb_update_scales_from_values()
+		self.rgb_fill_listbox()
 
 	def rgb_btnPresetDelete_event(self):
+		# RGB Module
+		idx = self.RGB_lbxPresets.curselection()[-1]
+		self.mainInst.RGB.delete_preset(idx)
+
+		# GUI Update
+		self.rgb_fill_listbox()
 		pass
 
 	def rgb_btnPresetStart_event(self):
@@ -480,8 +507,8 @@ class UserInterface(tk.Frame):
 
 	def rgb_btnPresetStop_event(self):
 		# RGB Module
+		# reset = False if self.mainInst.RGB.preset_type == "Animations" else True
 		self.mainInst.RGB.animation_stop()
-		pass
 
 	def rgb_update_scales_from_values(self):
 		values = self.mainInst.RGB.get_rgbm_from_channel()

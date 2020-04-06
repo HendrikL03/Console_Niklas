@@ -3,15 +3,24 @@ import time
 
 from GUI import UserInterface
 from rgb_handler import RGB
+from wc_handler import WC
+from arduino_com import Arduino
 
 class Main:
 	def __init__(self):
 		self.config_path = "./config.json"
 		self.config = self.load_config()
+		self.Arduino = Arduino(self)
 		self.RGB = RGB(self)
+		self.WC = WC(self)
 		self.GUI = UserInterface(self)
 
-		self.com_frequency = 60		# Hz
+		self.srl = self.Arduino.open_com_port()
+
+		self.Arduino.fill_values_to_send()
+		print(self.Arduino.values_to_send)
+
+		self.com_frequency = 120		# Hz
 
 		self.GUI.root.after(10, self.com_loop)
 
@@ -22,6 +31,8 @@ class Main:
 		if self.RGB.animation_active:
 			self.RGB.animation_set_rgb()
 			self.GUI.rgb_handle_animation()
+
+		self.Arduino.send()
 
 	def load_config(self):
 		with open(self.config_path, "r") as f:

@@ -5,7 +5,7 @@ class RGB:
 
 	def __init__(self, mainInst):
 		self.mainInst = mainInst
-		self.GUI_config = mainInst.config["RGB"]
+		self.RGB_config = mainInst.config["RGB"]
 
 		# Initialize RGB Values and Relaybools
 		self.rgbm_values = np.zeros((4, 2), dtype=np.uint)  # access via rgbm_values[:3, column]
@@ -19,6 +19,7 @@ class RGB:
 		self.animation_active = False
 		self.animation_data = None		# Contains whole Animation Preset with name, data and loop bool
 		self.animation_time = -1
+		self.animation_pause_time = -1
 
 	def set_relay_values(self):
 		self.relay_values[0], self.relay_values[2] = (np.any((self.rgbm_values[:3, 0] * self.rgbm_values[3][0]/255 > 0)),)*2
@@ -29,12 +30,19 @@ class RGB:
 		"""
 		:param idx: 0-red, 1-green, 2-blue, 3-master
 		:param value: value of scale
-		:param mask: rgb-channel mask [bool, bool]
 		:return: None
 		"""
 		self.rgbm_values[idx, self.gui_selected_channels] = value
-
 		self.set_relay_values()
+
+		# Set Arduino Mask
+		if idx < 3:
+			print("scl_event: mask")
+			mask_idx = self.mainInst.Arduino.mask_idx_rgb
+			if self.gui_selected_channels[0]:
+				self.mainInst.Arduino.values_to_send_mask[mask_idx+idx] = True
+			if self.gui_selected_channels[1]:
+				self.mainInst.Arduino.values_to_send_mask[mask_idx+idx+3] = True
 
 	def btn_channel_selection(self, channels, idx=None):
 		"""
@@ -51,6 +59,12 @@ class RGB:
 			elif idx == 1:
 				self.rgbm_values[:, 0] = copy_from
 
+		# Set Arduino Mask
+		for idx, selected in enumerate(self.gui_selected_channels):
+			if selected:
+				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
+				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+
 	def btn_relays_event(self, idx):
 		self.btn_relay_values[idx] = not self.btn_relay_values[idx]
 
@@ -58,7 +72,7 @@ class RGB:
 		self.preset_type = "Animations" if self.preset_type == "Presets" else "Presets"
 
 	def select_preset(self, idx):
-		preset = self.GUI_config[self.preset_type][idx]
+		preset = self.RGB_config[self.preset_type][idx]
 		if self.preset_type == "Presets":
 			if self.gui_selected_channels[0]:
 				self.rgbm_values[:, 0] = preset["data"]
@@ -67,15 +81,35 @@ class RGB:
 
 		elif self.preset_type == "Animations":
 			if self.gui_selected_channels[0]:
-				self.rgbm_values[:, 0] = preset["data"][0]
+				self.rgbm_values[:, 0] = preset["data"][0][:3] + [255]
 			if self.gui_selected_channels[1]:
-				self.rgbm_values[:, 1] = preset["data"][0]
+				self.rgbm_values[:, 1] = preset["data"][0][:3] + [255]
 
 			self.animation_data = preset
 
+			# reset animation_variables
+			self.animation_pause_time = -1
+			self.animation_time = -1
+			self.animation_active = False
+
 		self.set_relay_values()
-		# TODO Send Values to ARduino
-		pass
+
+		# Set Arduino Mask
+		for idx, selected in enumerate(self.gui_selected_channels):
+			if selected:
+				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
+				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+
+	def add_preset(self):
+		name = "Preset {}".format(len(self.RGB_config["Presets"]))
+		data = list(self.get_rgbm_from_channel())
+		preset = {"name": name, "data": data}
+		print(preset)
+
+		self.RGB_config["Presets"].append(preset)
+
+	def delete_preset(self, idx):
+		self.RGB_config["Presets"].pop(idx)
 
 	### Animations ###
 	def animation_set_rgb(self):
@@ -121,10 +155,17 @@ class RGB:
 		for idx, selected in enumerate(self.gui_selected_channels):
 			if selected:
 				self.rgbm_values[:, idx] = np.concatenate((rgb, [255]))
+				# Set Arduino Mask
+				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
+				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
 
 	def animation_start(self):
 		if self.animation_time == -1:
 			self.animation_time = time.time()
+			self.animation_pause_time = -1
+		elif self.animation_pause_time != -1:
+			self.animation_time = time.time() - (self.animation_pause_time - self.animation_time)
+			self.animation_pause_time = -1
 		self.animation_active = True
 
 	def animation_stop(self, reset = False):
@@ -132,6 +173,8 @@ class RGB:
 		if reset:
 			self.animation_time = -1
 			self.animation_data = None
+		else:
+			self.animation_pause_time = time.time()
 
 	### Utils ###
 	def get_rgbm_from_channel(self):
