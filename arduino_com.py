@@ -7,7 +7,7 @@ import serial
 class Arduino:
 	def __init__(self, mainInst):
 		self.mainInst = mainInst
-		self.values_to_send = np.zeros((15,), dtype=np.uint8)
+		self.values_to_send = np.zeros((15,))
 		self.values_to_send_mask = np.full((15,), False)
 
 		# Mask access
@@ -43,7 +43,10 @@ class Arduino:
 		for i, bit in enumerate(self.values_to_send_mask):
 			header[i//8] += 0x80*bit >> i%8
 
-		data = self.values_to_send[self.values_to_send_mask].tobytes()
+		data = self.values_to_send[self.values_to_send_mask].astype(np.uint8)
+
+		# Send values
+		# print(self.values_to_send_mask, data)
 
 		self.reset_mask()
 
@@ -56,5 +59,16 @@ class Arduino:
 		self.values_to_send[11:13] = ((True^(self.mainInst.WC.relay_value * self.mainInst.WC.btn_relay_value))*255,)*2
 		self.values_to_send[13:15] = 255, 255
 
+		# Apply function to color values
+		self.values_to_send[:8] = self.color_exp_function(self.values_to_send[:8])
+
 	def reset_mask(self):
 		self.values_to_send_mask = np.full((15,), False)
+
+	@staticmethod
+	def color_exp_function(x: np.array):
+		b = 255**(1/255)
+		M = x>0
+		x[M] = b**x[M]
+		x = np.round(x)
+		return x

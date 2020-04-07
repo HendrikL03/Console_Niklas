@@ -4,7 +4,7 @@ class WC:
 	# WC: WarmCold white
 	def __init__(self, mainInst):
 		self.mainInst = mainInst
-		self.wcm_values = np.zeros((3, ), dtype=np.uint)
+		self.wcm_values = np.zeros((3, ))
 		self.relay_value = False
 		self.btn_relay_value = False
 

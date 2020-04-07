@@ -8,7 +8,7 @@ class RGB:
 		self.RGB_config = mainInst.config["RGB"]
 
 		# Initialize RGB Values and Relaybools
-		self.rgbm_values = np.zeros((4, 2), dtype=np.uint)  # access via rgbm_values[:3, column]
+		self.rgbm_values = np.zeros((4, 2))  # access via rgbm_values[:3, column]
 		self.relay_values = np.array([False, False, False])  # RGB1, RGB2, RGB1
 		self.btn_relay_values = np.array([False, False, False])  # RGB1, RGB2, RGB1
 		self.gui_selected_channels = [True, True]
@@ -21,9 +21,12 @@ class RGB:
 		self.animation_time = -1
 		self.animation_pause_time = -1
 
+		self.set_arduino_mask()
+
 	def set_relay_values(self):
-		self.relay_values[0], self.relay_values[2] = (np.any((self.rgbm_values[:3, 0] * self.rgbm_values[3][0]/255 > 0)),)*2
-		self.relay_values[1] = np.any((self.rgbm_values[:3, 1] * self.rgbm_values[3][1]/255 > 0))
+		rgbm_values = np.round(self.rgbm_values).astype(int)
+		self.relay_values[0], self.relay_values[2] = (np.any((rgbm_values[:3, 0] * rgbm_values[3][0]/255 > 0)),)*2
+		self.relay_values[1] = np.any((rgbm_values[:3, 1] * rgbm_values[3][1]/255 > 0))
 
 	### GUI Events ###
 	def scl_event(self, idx, value):
@@ -36,13 +39,7 @@ class RGB:
 		self.set_relay_values()
 
 		# Set Arduino Mask
-		if idx < 3:
-			print("scl_event: mask")
-			mask_idx = self.mainInst.Arduino.mask_idx_rgb
-			if self.gui_selected_channels[0]:
-				self.mainInst.Arduino.values_to_send_mask[mask_idx+idx] = True
-			if self.gui_selected_channels[1]:
-				self.mainInst.Arduino.values_to_send_mask[mask_idx+idx+3] = True
+		self.set_arduino_mask()
 
 	def btn_channel_selection(self, channels, idx=None):
 		"""
@@ -53,20 +50,19 @@ class RGB:
 		self.gui_selected_channels = channels
 		if channels == [True, True]:
 			# Copy RGB values if Both Channels are selected
-			copy_from = self.rgbm_values[:, idx]
+			copy_from = np.round(self.rgbm_values[:, idx]).astype(int)
 			if idx == 0:
 				self.rgbm_values[:, 1] = copy_from
 			elif idx == 1:
 				self.rgbm_values[:, 0] = copy_from
 
-		# Set Arduino Mask
-		for idx, selected in enumerate(self.gui_selected_channels):
-			if selected:
-				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
-				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+		self.set_relay_values()
+
+		self.set_arduino_mask()
 
 	def btn_relays_event(self, idx):
 		self.btn_relay_values[idx] = not self.btn_relay_values[idx]
+		self.set_arduino_mask(relay_channels=idx)
 
 	def switch_preset_type(self):
 		self.preset_type = "Animations" if self.preset_type == "Presets" else "Presets"
@@ -95,16 +91,16 @@ class RGB:
 		self.set_relay_values()
 
 		# Set Arduino Mask
-		for idx, selected in enumerate(self.gui_selected_channels):
-			if selected:
-				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
-				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+		# for idx, selected in enumerate(self.gui_selected_channels):
+		# 	if selected:
+		# 		mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
+		# 		self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+		self.set_arduino_mask()
 
 	def add_preset(self):
 		name = "Preset {}".format(len(self.RGB_config["Presets"]))
 		data = list(self.get_rgbm_from_channel())
 		preset = {"name": name, "data": data}
-		print(preset)
 
 		self.RGB_config["Presets"].append(preset)
 
@@ -130,7 +126,6 @@ class RGB:
 			return
 		if (t-self.animation_time) >= max(abs(data[:, 3])) and self.animation_data["loop"]:
 			# If there are no more Keycolors but the Preset loops, reset animation_time
-			print("reset animation time")
 			self.animation_time = time.time()
 
 		t = time.time()
@@ -147,17 +142,18 @@ class RGB:
 			delta[3] = abs(delta[3])
 
 			rgb = data[idx-1][:3] + (rel_t - abs(data[idx-1][3]))/delta[3] * delta[:3] #(t - abs(timebase)) / abs(delta[3]) * delta[:3] + data[idx - 1][:3]
-			rgb = np.round(rgb).astype(np.uint)
+			#rgb = np.round(rgb).astype(np.uint)
 		else:
 			rgb = data[idx-1][:3]
 
 		# Set values
 		for idx, selected in enumerate(self.gui_selected_channels):
 			if selected:
-				self.rgbm_values[:, idx] = np.concatenate((rgb, [255]))
+				self.rgbm_values[:, idx] = np.concatenate((rgb, [255.]))
 				# Set Arduino Mask
-				mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
-				self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+				# mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
+				# self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+		self.set_arduino_mask()
 
 	def animation_start(self):
 		if self.animation_time == -1:
@@ -179,5 +175,24 @@ class RGB:
 	### Utils ###
 	def get_rgbm_from_channel(self):
 		idx = self.gui_selected_channels.index(True)
-		return self.rgbm_values[:, idx]
-		pass
+		return np.round(self.rgbm_values[:, idx]).astype(int)
+
+
+	def set_arduino_mask(self, channels=None, relay_channels=None):
+		# RGB values
+		if channels is None:
+			channels=[0,1,2]
+		if relay_channels is None:
+			relay_channels = [0, 1, 2]
+
+		start_idx = self.mainInst.Arduino.mask_idx_rgb
+		raw_idxs = np.array([[0, 3], [1, 4], [2, 5]]) + start_idx
+
+		idx = raw_idxs[channels][:, self.gui_selected_channels].flatten() # filter out indexes that are not needed
+		self.mainInst.Arduino.values_to_send_mask[idx] = True
+
+		# Relays
+		first_idx_relays = self.mainInst.Arduino.mask_idx_rgbrls	# first index
+		raw_idxs_relays = np.array([0, 1, 2]) + first_idx_relays	# indexes relative to first + first
+		idx_relay = raw_idxs_relays[relay_channels]					# filter out indexes that are not needed
+		self.mainInst.Arduino.values_to_send_mask[idx_relay] = True
