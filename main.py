@@ -41,6 +41,12 @@ class Main:
 	def save_config(self):
 		pass
 
+	def close(self):
+		# Set Mask
+		self.Arduino.reset_values()
+
+		self.GUI.root.destroy()
+
 
 if __name__ == "__main__":
 	App = Main()

@@ -46,15 +46,15 @@ class Arduino:
 		data = self.values_to_send[self.values_to_send_mask].astype(np.uint8)
 
 		# Send values
-		# print(self.values_to_send_mask, data)
+		print(self.values_to_send_mask, data)
 
 		self.reset_mask()
 
 	### Utils ###
 	def fill_values_to_send(self):
-		self.values_to_send[:3] = self.mainInst.RGB.rgbm_values[:3, 0]
-		self.values_to_send[3:6] = self.mainInst.RGB.rgbm_values[:3, 1]
-		self.values_to_send[6:8] = self.mainInst.WC.wcm_values[:2]
+		self.values_to_send[:3] = self.mainInst.RGB.rgbm_values[:3, 0] * self.mainInst.RGB.rgbm_values[3, 0]/255
+		self.values_to_send[3:6] = self.mainInst.RGB.rgbm_values[:3, 1] * self.mainInst.RGB.rgbm_values[3, 0]/255
+		self.values_to_send[6:8] = self.mainInst.WC.wcm_values[:2] * self.mainInst.WC.wcm_values[2]
 		self.values_to_send[8:11] = (True^(self.mainInst.RGB.relay_values * self.mainInst.RGB.btn_relay_values))*255
 		self.values_to_send[11:13] = ((True^(self.mainInst.WC.relay_value * self.mainInst.WC.btn_relay_value))*255,)*2
 		self.values_to_send[13:15] = 255, 255
@@ -64,6 +64,13 @@ class Arduino:
 
 	def reset_mask(self):
 		self.values_to_send_mask = np.full((15,), False)
+
+	def reset_values(self):
+		header = bytearray([0xff, 0xfe])
+		data = bytearray(np.concatenate(([0]*8, [255]*7)).astype(np.uint8))
+
+		# Send
+		print(header, data)
 
 	@staticmethod
 	def color_exp_function(x: np.array):

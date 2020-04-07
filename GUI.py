@@ -22,6 +22,7 @@ class UserInterface(tk.Frame):
 		self.root.columnconfigure(0, weight=1)
 
 		# Build GUI
+		self.load_pictures()
 		self.build()
 		self.grid_config_UI()
 
@@ -29,8 +30,6 @@ class UserInterface(tk.Frame):
 		self.rgb_fill_listbox()
 
 		self.grid()
-
-	# TODO Load Pictures
 
 	def build(self):
 		# Global configurations
@@ -78,9 +77,11 @@ class UserInterface(tk.Frame):
 		###################################################################################################
 		self.FrameTopBar.config(highlightthickness=1)
 
-		self.TopBar_btnMenu = tk.Button(self.FrameTopBar, text="menu", highlightthickness=1, relief=tk.FLAT)
+		self.TopBar_btnMenu = tk.Button(self.FrameTopBar, text="menu", highlightthickness=1, relief=tk.FLAT,
+										image=self.btn_pictures["MenuSymbol"])
 		self.TopBar_lblClock = tk.Label(self.FrameTopBar, text="00:00", font=fonts["clock"])
-		self.TopBar_btnDpb = tk.Button(self.FrameTopBar, text="dpb", highlightthickness=1, relief=tk.FLAT)
+		self.TopBar_btnDpb = tk.Button(self.FrameTopBar, text="dpb", highlightthickness=1, relief=tk.FLAT,
+									   image=self.btn_pictures["DpbSymbol"])
 
 		self.TopBar_btnMenu.grid(row=0, column=0, padx=1, pady=1, sticky=tk.NSEW)
 		self.TopBar_lblClock.grid(row=0, column=1, sticky=tk.NSEW)
@@ -113,6 +114,7 @@ class UserInterface(tk.Frame):
 		self.Menu_btnHome.config(command=partial(self.menu_DisplayFrame_event, self.FrameHome))
 		self.Menu_btnRGB.config(command=partial(self.menu_DisplayFrame_event, self.FrameRGB))
 		self.Menu_btnAlarms.config(command=partial(self.menu_DisplayFrame_event, self.FrameAlarms))
+		self.Menu_btnClose.config(command=self.mainInst.close)
 
 		###################################################################################################
 		# HOME FRAME
@@ -129,27 +131,30 @@ class UserInterface(tk.Frame):
 										variable=self.sclShutterVar)
 		self.Home_btnSetShutter = tk.Button(self.fHomeShutter, text="Set", font=default_font,
 											highlightthickness=1, relief=tk.FLAT)
-		self.Home_btnShutterUp = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT)
-		self.Home_btnShutterStop = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT)
-		self.Home_btnShutterDown = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT)
+		self.Home_btnShutterUp = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT,
+										   image=self.btn_pictures["ShutterUp"])
+		self.Home_btnShutterStop = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT,
+											 image=self.btn_pictures["ShutterStop"])
+		self.Home_btnShutterDown = tk.Button(self.fHomeShutter, highlightthickness=1, relief=tk.FLAT,
+											 image=self.btn_pictures["ShutterDown"])
 
 		self.Home_btnSetShutter.grid(row=3, column=0, columnspan=2, sticky=tk.NSEW)
 		self.Home_sclShutter.grid(row=0, rowspan=3, column=0, sticky=tk.NSEW)
-		self.Home_btnShutterDown.grid(row=0, column=1, sticky=tk.NSEW)
+		self.Home_btnShutterUp.grid(row=0, column=1, sticky=tk.NSEW)
 		self.Home_btnShutterStop.grid(row=1, column=1, sticky=tk.NSEW)
-		self.Home_btnShutterUp.grid(row=2, column=1, sticky=tk.NSEW)
-
+		self.Home_btnShutterDown.grid(row=2, column=1, sticky=tk.NSEW)
 		# RGB
 		self.Home_btnRGBRelayChannels = []
 		for i in range(3):
 			self.Home_btnRGBRelayChannels.append( tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-											 command=partial(self.home_btnRGB_event, i)))
+															image=self.btn_pictures["RGBOff"],
+															command=partial(self.home_btnRGB_event, i)))
 
 			self.Home_btnRGBRelayChannels[-1].grid(row=i, column=0, padx=1, pady=1, sticky=tk.NSEW)
 
 		# WC
 		self.sclWCBrightnessVar, self.sclWCBalanceVar = tk.IntVar(), tk.IntVar()
-		self.Home_btnWC = tk.Button(self.fHomeWC, relief=tk.FLAT)
+		self.Home_btnWC = tk.Button(self.fHomeWC, relief=tk.FLAT, image=self.btn_pictures["WCOff"])
 		self.Home_sclWCBrightness = tk.Scale(self.fHomeWC, from_=255, to=0, width=45, borderwidth=3, sliderlength=50,
 											 variable=self.sclWCBrightnessVar, command=self.home_sclBrightness_event)
 		self.Home_sclWCBalance = tk.Scale(self.fHomeWC, from_=-255, to=255, width=45, borderwidth=3, sliderlength=50,
@@ -166,6 +171,8 @@ class UserInterface(tk.Frame):
 
 		# Commands
 		self.Home_sclWCBalance.config(command=self.home_sclBalance_event)
+		self.Home_sclWCBrightness.config(command=self.home_sclBrightness_event)
+		self.Home_btnWC.config(command=self.home_btnWC_event)
 
 		###################################################################################################
 		# RGB FRAME
@@ -265,7 +272,6 @@ class UserInterface(tk.Frame):
 		self.RGB_btnStart.config(command=self.rgb_btnPresetStart_event)
 		self.RGB_btnStop.config(command=self.rgb_btnPresetStop_event)
 
-
 	def root_config_evt(self, evt):
 		if isinstance(evt.widget, tk.Tk) and (evt.width != self.width or evt.height != self.height):
 			self.width, self.height = evt.width, evt.height
@@ -331,7 +337,21 @@ class UserInterface(tk.Frame):
 		self.fRGBPresetBtns.grid_columnconfigure(0, weight=1)
 		self.fRGBPresetBtns.grid_rowconfigure(2, weight=1)
 
-#################################################################
+	def load_pictures(self):
+		path = "./Img/"
+		self.btn_pictures = {"DpbSymbol": tk.PhotoImage(file=path + "DpbSun50x50.png"),
+							 "MenuSymbol": tk.PhotoImage(file=path + "MenuSym50x50.png"),
+							 "RGBOff": tk.PhotoImage(file=path + "RGBOff100x100.png"),
+							 "RGBOn": tk.PhotoImage(file=path + "RGBOn100x100.png"),
+							 "ShutterDown": tk.PhotoImage(file=path + "RlldDown100x100.png"),
+							 "ShutterStop": tk.PhotoImage(file=path + "RlldStop100x50.png"),
+							 "ShutterUp": tk.PhotoImage(file=path + "RlldUp100x100.png"),
+							 "WCOff": tk.PhotoImage(file=path + "WCOff235x235.png"),
+							 "WCOn": tk.PhotoImage(file=path + "WCOn235x235.png"),
+							 "TimeDown": tk.PhotoImage(file=path + "TimeDown50x50.png"),
+							 "TimeUp": tk.PhotoImage(file=path + "TimeUp50x50.png")}
+
+	#################################################################
 # Events and other Functions
 #################################################################
 
@@ -387,6 +407,10 @@ class UserInterface(tk.Frame):
 		self.mainInst.RGB.btn_relays_event(idx)
 
 		# GUI Updates
+		if self.mainInst.RGB.btn_relay_values[idx]:
+			self.Home_btnRGBRelayChannels[idx].config(image=self.btn_pictures["RGBOn"])
+		else:
+			self.Home_btnRGBRelayChannels[idx].config(image=self.btn_pictures["RGBOff"])
 		# TODO Load rgb picture
 
 	def home_btnWC_event(self):
@@ -394,8 +418,10 @@ class UserInterface(tk.Frame):
 		self.mainInst.WC.relay_btn()
 
 		# GUI Update
-		# TODO load wc picture
-		pass
+		if self.mainInst.WC.btn_relay_value:
+			self.Home_btnWC.config(image=self.btn_pictures["WCOn"])
+		else:
+			self.Home_btnWC.config(image=self.btn_pictures["WCOff"])
 
 	def home_sclBrightness_event(self, value):
 		# WC Module
