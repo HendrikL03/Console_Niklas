@@ -2,6 +2,7 @@ Ideas:
     - Transistion in RGB when setting a preset / Turning relays on or off
 
 TODO:
+    - RGB Animation: only set mask if on of the relays is on
     - Arduino
     - Alarm:
         - GUI

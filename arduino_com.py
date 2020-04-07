@@ -43,12 +43,17 @@ class Arduino:
 		for i, bit in enumerate(self.values_to_send_mask):
 			header[i//8] += 0x80*bit >> i%8
 
-		data = self.values_to_send[self.values_to_send_mask].astype(np.uint8)
+		data = bytearray(self.values_to_send[self.values_to_send_mask].astype(np.uint8))
 
 		# Send values
+		# for b in (header + data):
+		# 	print(bin(b), end="\t")
+		# print("\n", header + data)
+		# print(header + data)
 		if isinstance(self.srl, serial.Serial):
 			self.srl.write(header + data)
-		# print(self.values_to_send_mask, data)
+
+			# print(str(self.srl.read(self.srl.in_waiting), encoding="ascii"))
 
 		self.reset_mask()
 
@@ -74,12 +79,16 @@ class Arduino:
 		# Send
 		if isinstance(self.srl, serial.Serial):
 			self.srl.write(header + data)
-		print(header, data)
+		print("reset:")
+		for b in (header + data):
+			print(bin(b), end="\t")
+		print()
 
 	@staticmethod
 	def color_exp_function(x: np.array):
 		b = 255**(1/255)
 		M = x>0
+		# print(x[M])
 		x[M] = b**x[M]
 		x = np.round(x)
 		return x

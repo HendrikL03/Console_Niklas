@@ -13,14 +13,17 @@ class Main:
 		self.Arduino = Arduino(self)
 		self.RGB = RGB(self)
 		self.WC = WC(self)
+
+		self.Arduino.srl = self.Arduino.open_com_port()
+		print(str(self.Arduino.srl.read(self.Arduino.srl.in_waiting), encoding="ascii"))
+
 		self.GUI = UserInterface(self)
 
-		self.srl = self.Arduino.open_com_port()
 
 		self.Arduino.fill_values_to_send()
 		print(self.Arduino.values_to_send)
 
-		self.com_frequency = 120		# Hz
+		self.com_frequency = 150		# Hz
 
 		self.GUI.root.after(10, self.com_loop)
 
