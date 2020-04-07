@@ -46,7 +46,9 @@ class Arduino:
 		data = self.values_to_send[self.values_to_send_mask].astype(np.uint8)
 
 		# Send values
-		print(self.values_to_send_mask, data)
+		if isinstance(self.srl, serial.Serial):
+			self.srl.write(header + data)
+		# print(self.values_to_send_mask, data)
 
 		self.reset_mask()
 
@@ -67,9 +69,11 @@ class Arduino:
 
 	def reset_values(self):
 		header = bytearray([0xff, 0xfe])
-		data = bytearray(np.concatenate(([0]*8, [255]*7)).astype(np.uint8))
+		data = bytearray([0x00]*8 + [0xff]*7)
 
 		# Send
+		if isinstance(self.srl, serial.Serial):
+			self.srl.write(header + data)
 		print(header, data)
 
 	@staticmethod
