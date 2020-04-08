@@ -37,7 +37,6 @@ int pin_array[] = {
 
 void setup() {
     Serial.begin(115200);
-//    Serial.println("Hallo User");
 
     // Setup Pins
     for (int i=0; i < 8; i++) {
@@ -49,6 +48,8 @@ void setup() {
         digitalWrite(pin_array[i], HIGH);
     }
     
+    while (Serial.available()) {Serial.read();}
+    
 }
 
 uint16_t header;
@@ -58,8 +59,6 @@ void loop() {
     if (Serial.available() > 1){
         // header lesen
         header = (Serial.read() << 8) + Serial.read();
-//        Serial.println("###############################################################");
-        Serial.println(header, BIN);
         
         // Durch Header iterieren und wenn Bit 1 ist, Wert lesen und setzen
         for (int i = 0; i < 15; i++) {
@@ -67,8 +66,6 @@ void loop() {
                 while (!Serial.available()) {}
                 data = Serial.read();
                 analogWrite(pin_array[i], data);
-//                Serial.print("pin "); Serial.print(pin_array[i]); Serial.print("    ");
-                Serial.println(data, BIN);
             }
         }
     }

@@ -28,6 +28,7 @@ class RGB:
 		self.relay_values[0], self.relay_values[2] = (np.any((rgbm_values[:3, 0] * rgbm_values[3][0]/255 > 0)),)*2
 		self.relay_values[1] = np.any((rgbm_values[:3, 1] * rgbm_values[3][1]/255 > 0))
 
+
 	### GUI Events ###
 	def scl_event(self, idx, value):
 		"""
@@ -187,7 +188,6 @@ class RGB:
 
 		start_idx = self.mainInst.Arduino.mask_idx_rgb
 		raw_idxs = np.array([[0, 3], [1, 4], [2, 5]]) + start_idx
-
 		idx = raw_idxs[channels][:, self.gui_selected_channels].flatten() # filter out indexes that are not needed
 		self.mainInst.Arduino.values_to_send_mask[idx] = True
 

@@ -59,11 +59,18 @@ class Arduino:
 
 	### Utils ###
 	def fill_values_to_send(self):
-		self.values_to_send[:3] = self.mainInst.RGB.rgbm_values[:3, 0] * self.mainInst.RGB.rgbm_values[3, 0]/255
-		self.values_to_send[3:6] = self.mainInst.RGB.rgbm_values[:3, 1] * self.mainInst.RGB.rgbm_values[3, 0]/255
-		self.values_to_send[6:8] = self.mainInst.WC.wcm_values[:2] * self.mainInst.WC.wcm_values[2]
-		self.values_to_send[8:11] = (True^(self.mainInst.RGB.relay_values * self.mainInst.RGB.btn_relay_values))*255
-		self.values_to_send[11:13] = ((True^(self.mainInst.WC.relay_value * self.mainInst.WC.btn_relay_value))*255,)*2
+		rgbm_values = self.mainInst.RGB.rgbm_values
+		rgb_bools = self.mainInst.RGB.relay_values * self.mainInst.RGB.btn_relay_values
+		# Values * master * relay_bools
+		self.values_to_send[:3] = rgbm_values[:3, 0] * rgbm_values[3, 0]/255 * (True in (rgb_bools[0], rgb_bools[2]))
+		self.values_to_send[3:6] = rgbm_values[:3, 1] * rgbm_values[3, 1]/255 * rgb_bools[1]
+
+		wcm_values = self.mainInst.WC.wcm_values
+		wc_bool = self.mainInst.WC.relay_value * self.mainInst.WC.btn_relay_value
+		self.values_to_send[6:8] = wcm_values[:2] * wcm_values[2]/255 * wc_bool
+
+		self.values_to_send[8:11] = (True ^ rgb_bools) * 255
+		self.values_to_send[11:13] = ((True ^ wc_bool) * 255,) * 2
 		self.values_to_send[13:15] = 255, 255
 
 		# Apply function to color values

@@ -105,10 +105,10 @@ class UserInterface(tk.Frame):
 		self.Menu_btnClose = tk.Button(self.FrameMenu, text="Schließen", font=fonts["menu"], justify=tk.RIGHT,
 									   highlightthickness=1, relief=tk.FLAT)
 
-		self.Menu_btnHome.grid(row=0, sticky=tk.NSEW)
-		self.Menu_btnRGB.grid(row=1, sticky=tk.NSEW)
-		self.Menu_btnAlarms.grid(row=2, sticky=tk.NSEW)
-		self.Menu_btnClose.grid(row=3, sticky=tk.S + tk.EW)
+		self.Menu_btnHome.grid(row=0, padx=2, pady=2, sticky=tk.NSEW)
+		self.Menu_btnRGB.grid(row=1, padx=2, pady=2, sticky=tk.NSEW)
+		self.Menu_btnAlarms.grid(row=2, padx=2, pady=2, sticky=tk.NSEW)
+		self.Menu_btnClose.grid(row=3, padx=2, pady=2, sticky=tk.S + tk.EW)
 
 		# Commands
 		self.Menu_btnHome.config(command=partial(self.menu_DisplayFrame_event, self.FrameHome))
@@ -310,7 +310,7 @@ class UserInterface(tk.Frame):
 
 		# Shutter
 		self.fHomeShutter.grid_rowconfigure(0, weight=1)
-		self.fHomeShutter.grid_rowconfigure(1, weight=1)
+		self.fHomeShutter.grid_rowconfigure(1, weight=2)
 		self.fHomeShutter.grid_rowconfigure(2, weight=1)
 		self.fHomeShutter.grid_rowconfigure(3, weight=1)
 		self.fHomeShutter.grid_columnconfigure(1, weight=1)
@@ -329,6 +329,8 @@ class UserInterface(tk.Frame):
 		self.fHomeWC.grid_rowconfigure(1, weight=1)
 
 		### RGB ###
+		self.FrameRGB.config(width=self.width, height=int(self.height * self.rel_panel_height))
+		self.FrameRGB.grid_rowconfigure(0, weight=1, minsize=int(self.FrameRGB.cget("height")*0.11))
 		self.FrameRGB.grid_rowconfigure(1, weight=1)
 		self.FrameRGB.grid_columnconfigure(4, minsize=int(0.05*self.width), weight=1)
 		self.FrameRGB.grid_columnconfigure(5, weight=1)
@@ -351,7 +353,7 @@ class UserInterface(tk.Frame):
 							 "TimeDown": tk.PhotoImage(file=path + "TimeDown50x50.png"),
 							 "TimeUp": tk.PhotoImage(file=path + "TimeUp50x50.png")}
 
-	#################################################################
+#################################################################
 # Events and other Functions
 #################################################################
 
