@@ -138,7 +138,7 @@ class RGB:
 				break
 
 		timebase = data[idx - 1][3]
-		if timebase >= 0:
+		if data[idx][3] >= 0:	#timebase >= 0:
 			delta = data[idx] - data[idx - 1]
 			delta[3] = abs(delta[3])
 
@@ -151,9 +151,8 @@ class RGB:
 		for idx, selected in enumerate(self.gui_selected_channels):
 			if selected:
 				self.rgbm_values[:3, idx] = rgb
-				# Set Arduino Mask
-				# mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
-				# self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]
+
+		self.set_relay_values()
 		self.set_arduino_mask()
 
 	def animation_start(self):

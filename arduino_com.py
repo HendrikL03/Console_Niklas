@@ -69,9 +69,10 @@ class Arduino:
 		wc_bool = self.mainInst.WC.relay_value * self.mainInst.WC.btn_relay_value
 		self.values_to_send[6:8] = wcm_values[:2] * wcm_values[2]/255 * wc_bool
 
+		# XOR to reverse all bools at once
 		self.values_to_send[8:11] = (True ^ rgb_bools) * 255
 		self.values_to_send[11:13] = ((True ^ wc_bool) * 255,) * 2
-		self.values_to_send[13:15] = self.mainInst.Shutter.relay_states
+		self.values_to_send[13:15] = (True ^ self.mainInst.Shutter.relay_states) * 255
 
 		# Apply function to color values
 		self.values_to_send[:8] = self.color_exp_function(self.values_to_send[:8])

@@ -2,6 +2,7 @@ import tkinter as tk
 import sys
 from functools import partial
 import time
+# from tkinter.messagebox import askquestion
 
 
 class UserInterface(tk.Frame):
@@ -12,6 +13,7 @@ class UserInterface(tk.Frame):
 		super().__init__(self.root)
 		if sys.platform == "linux":
 			self.root.attributes("-fullscreen", True)
+			self.root.config(cursor=tk.NONE)
 			self.width, self.height = self.root.winfo_screenwidth(), self.root.winfo_screenheight()
 		else:
 			self.config(width=800, height=480)
@@ -152,8 +154,7 @@ class UserInterface(tk.Frame):
 		self.Home_btnRGBRelayChannels = []
 		for i in range(3):
 			self.Home_btnRGBRelayChannels.append( tk.Button(self.fHomeRGB, highlightthickness=1, relief=tk.FLAT,
-															image=self.btn_pictures["RGBOff"],
-															command=partial(self.home_btnRGB_event, i)))
+															image=self.btn_pictures["RGBOff"]))
 
 			self.Home_btnRGBRelayChannels[-1].grid(row=i, column=0, padx=1, pady=1, sticky=tk.NSEW)
 
@@ -175,6 +176,11 @@ class UserInterface(tk.Frame):
 		self.fHomeWC.grid(row=0, column=2, padx=10, pady=10, sticky=tk.NSEW)
 
 		# Commands
+		self.Home_btnShutterUp.config(command=self.home_btnShutterUp_event)
+		self.Home_btnShutterStop.config(command=self.home_btnShutterStop_event)
+		self.Home_btnShutterDown.config(command=self.home_btnShutterDown_event)
+		for i in range(3):
+			self.Home_btnRGBRelayChannels[i].config(command = partial(self.home_btnRGB_event, i))
 		self.Home_sclWCBalance.config(command=self.home_sclBalance_event)
 		self.Home_sclWCBrightness.config(command=self.home_sclBrightness_event)
 		self.Home_btnWC.config(command=self.home_btnWC_event)
@@ -418,13 +424,19 @@ class UserInterface(tk.Frame):
 		pass
 
 	def home_btnShutterUp_event(self):
-		pass
+		# Shutter Module
+		self.mainInst.Shutter.shutter_up()
 
 	def home_btnShutterStop_event(self):
-		pass
+		# Shutter Module
+		self.mainInst.Shutter.shutter_stop()
+
+		# Update Scale
+		self.sclShutterVar.set(round(self.mainInst.Shutter.value/self.mainInst.Shutter.max_value * 100))
 
 	def home_btnShutterDown_event(self):
-		pass
+		# Shutter Module
+		self.mainInst.Shutter.shutter_down()
 
 	def home_btnRGB_event(self, idx):
 		# RGB Module
