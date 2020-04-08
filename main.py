@@ -1,9 +1,11 @@
 import json
 import time
+import datetime
 
 from GUI import UserInterface
 from rgb_handler import RGB
 from wc_handler import WC
+from shutter_handler import Shutter
 from arduino_com import Arduino
 
 class Main:
@@ -13,6 +15,7 @@ class Main:
 		self.Arduino = Arduino(self)
 		self.RGB = RGB(self)
 		self.WC = WC(self)
+		self.Shutter = Shutter(self)
 
 		self.Arduino.srl = self.Arduino.open_com_port()
 		print(str(self.Arduino.srl.read(self.Arduino.srl.in_waiting), encoding="ascii"))
@@ -26,6 +29,7 @@ class Main:
 		self.com_frequency = 150		# Hz
 
 		self.GUI.root.after(10, self.com_loop)
+		self.GUI.after(10, self.second_loop)
 
 		self.GUI.root.mainloop()
 
@@ -36,6 +40,14 @@ class Main:
 			self.GUI.rgb_handle_animation()
 
 		self.Arduino.send()
+
+	def second_loop(self):
+		self.GUI.after(int(datetime.datetime.now().microsecond/1000), self.second_loop)
+
+		self.GUI.TopBar_lblClock.config(text=datetime.datetime.now().strftime("%H:%M"))
+
+		if time.time() > self.GUI.last_unblank + self.GUI.blank_time_intervall:
+			self.GUI.blank_screen()
 
 	def load_config(self):
 		with open(self.config_path, "r") as f:

@@ -150,7 +150,7 @@ class RGB:
 		# Set values
 		for idx, selected in enumerate(self.gui_selected_channels):
 			if selected:
-				self.rgbm_values[:, idx] = np.concatenate((rgb, [255.]))
+				self.rgbm_values[:3, idx] = rgb
 				# Set Arduino Mask
 				# mask_idx = self.mainInst.Arduino.mask_idx_rgb + idx*3
 				# self.mainInst.Arduino.values_to_send_mask[mask_idx:mask_idx + 3] = [True, True, True]

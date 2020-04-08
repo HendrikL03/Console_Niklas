@@ -1,6 +1,7 @@
 import tkinter as tk
 import sys
 from functools import partial
+import time
 
 
 class UserInterface(tk.Frame):
@@ -28,6 +29,8 @@ class UserInterface(tk.Frame):
 
 		# Setup other things
 		self.rgb_fill_listbox()
+		self.blank_time_intervall = 30
+		self.last_unblank = time.time()
 
 		self.grid()
 
@@ -67,6 +70,8 @@ class UserInterface(tk.Frame):
 		self.FrameHome = tk.Frame(self)
 		self.FrameRGB = tk.Frame(self)
 		self.FrameAlarms = tk.Frame(self)
+		self.FrameBlank = tk.Frame(self, bg="black")
+		self.FrameBlank.bind("<Button-1>", self.unblank_screen)
 
 		self.FrameTopBar.grid(row=0, column=0, pady=1, padx=1, sticky=tk.NSEW)
 		self.FrameHome.grid(row=1, column=0, pady=1, padx=1, sticky=tk.NSEW)
@@ -371,6 +376,23 @@ class UserInterface(tk.Frame):
 
 			fg_color = "#000000" if max(rgb) > 128 else "#ffffff"
 			self.RGB_lbxPresets.itemconfig(tk.END, foreground=fg_color, selectforeground=fg_color)
+
+	### Blank
+	def blank_screen(self):
+		self.FrameBlank.grid(row=0, rowspan=2, column=0, sticky=tk.NSEW)
+		self.FrameBlank.lift()
+		if sys.platform == "linux":
+			with open("/sys/class/backlight/rpi_backlight/bl_power", "w") as f:
+				print("blank_writefile")
+				f.write("1")
+
+	def unblank_screen(self, evt=None):
+		self.last_unblank = time.time()
+		self.FrameBlank.grid_forget()
+		if sys.platform == "linux":
+			with open("/sys/class/backlight/rpi_backlight/bl_power", "w") as f:
+				print("unblank_writefile")
+				f.write("0")
 
 	#### Top Bar Events
 	def topBar_btnDpb_event(self):

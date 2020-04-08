@@ -71,7 +71,7 @@ class Arduino:
 
 		self.values_to_send[8:11] = (True ^ rgb_bools) * 255
 		self.values_to_send[11:13] = ((True ^ wc_bool) * 255,) * 2
-		self.values_to_send[13:15] = 255, 255
+		self.values_to_send[13:15] = self.mainInst.Shutter.relay_states
 
 		# Apply function to color values
 		self.values_to_send[:8] = self.color_exp_function(self.values_to_send[:8])
@@ -93,9 +93,11 @@ class Arduino:
 
 	@staticmethod
 	def color_exp_function(x: np.array):
-		b = 255**(1/255)
+		k = 8
+		b = 1.1156707339947467		# ((255+k-1)/k)**(k/255); 1.1156... für k=8
+
 		M = x>0
 		# print(x[M])
-		x[M] = b**x[M]
+		x[M] = k * b**(x[M]/k) - k + 1
 		x = np.round(x)
 		return x
